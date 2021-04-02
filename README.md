@@ -79,6 +79,36 @@ The only parts you shouldn't change are the package type and the `tutv95/wp-pack
 ### Push and test
 Commit and push to GitHub. You should now see a new "Actions" tab across the top of your repository. Click into it, find the "Updater" workflow, and run it (main branch, no `yml` required). The action should pull and tag the latest available version of the plugin.
 
+### Require
+You can now require this library in your WordPress install. In your WordPress's `composer.json`, add the GitHub repo as [a VCS repository](https://getcomposer.org/doc/05-repositories.md#vcs):
+
+```
+{
+	"name": "roots/bedrock",
+	"type": "project",
+	...
+	"repositories": [
+		{
+			"type": "composer",
+			"url": "https://wpackagist.org"
+		},
+		{
+			"type": "vcs",
+			"url": "git@github.com:sterner-stuff/advanced-custom-fields-pro.git"
+		}
+	],
+	"require": {
+		...
+	}
+}
+
+```
+And finally, run `composer require {{ package-name }}` according to what you configured. Given the previous example:
+
+```
+composer require elliotcondon/advanced-custom-fields-pro
+```
+
 ## Etiquette
 The WordPress license, and how it impacts paid plugins, will probably always be a point of contention. Ignoring that, we believe that plugin authors that choose to charge for their work should get paid, considering the cost savings gained by using their work. Therefore, we strongly discourage using this workflow to make self-updating public mirrors of private WordPress plugins and themes. Please create a private repository for use in-line with the author's terms of use.
 
