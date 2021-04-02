@@ -1,0 +1,14 @@
+{
+    "name": "plugin-author/plugin-name",
+    "type": "wordpress-plugin",
+    "authors": [
+        {
+            "name": "Ethan Clevenger",
+            "email": "ethan@sternerstuff.dev"
+        }
+    ],
+    "require": {},
+    "require-dev": {
+        "tutv95/wp-package-parser": "^1.0"
+    }
+}

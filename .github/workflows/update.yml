@@ -1,0 +1,86 @@
+name: Updater
+
+# Run this workflow twice daily
+on: 
+  schedule:
+    - cron: '0 */12 * * *'
+  workflow_dispatch:
+    inputs:
+      name:
+        description: 'yml'
+        required: false
+
+jobs:
+  # Set the job key. The key is displayed as the job name
+  # when a job name is not provided
+  update:
+    # Name the Job
+    name: Fetch and check versions
+    # Set the type of machine to run on
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      # Fetch latest version
+      - name: Fetch
+        run: wget 'https://privateplugin.example&k=${{secrets.PLUGIN_KEY}}' -O plugin.zip
+
+      # PHP
+      - name: 'Setup PHP'
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.0'
+        
+      # Install dependencies
+      - name: Composer
+        run: 'composer install'
+
+      # Get current tag
+      - name: 'Get Previous tag'
+        id: previous_version
+        uses: "WyriHaximus/github-action-get-previous-tag@v1"
+        
+      # Get new version
+      - name: 'Get version'
+        id: new_version
+        run: echo "::set-output name=new_version::$(php .github/workflows/check.php)"
+
+      # Compare versions
+      - name: 'Check if update is needed'
+        run: 'if [ "${{ steps.previous_version.outputs.tag }}" = "${{ steps.new_version.outputs.new_version }}" ]; then exit 1; else exit 0; fi'
+        
+      - name: 'Git config'
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email noreply@github.com
+
+      - name: 'Clean'
+        run: find . -maxdepth 1 \( -name 'plugin.zip' -o -name 'composer.json' -o -name 'composer.lock' -o -name '.gitignore' -o -name 'README.md' -o -path './.git' -o -path './.github' \) -prune -o -exec rm -rf {} \;
+
+      - name: Unzip
+        uses: TonyBogdanov/zip@1.0
+        with:
+            args: unzip -qq ./plugin.zip -d .
+      
+      - name: Move
+        run: sudo mv plugin/* .
+      
+      - name: rm
+        run: rm plugin.zip && rm -rf plugin
+        
+      - name: Commit
+        id: make-commit
+        run: |
+          git add .
+          git commit -m '${{ steps.new_version.outputs.new_version }}'
+          echo "::set-output name=commit::$(git rev-parse HEAD)"
+    
+      - name: Push
+        run: |
+          git push
+          git tag ${{ steps.new_version.outputs.new_version }}
+          git push --tags
