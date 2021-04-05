@@ -10,6 +10,9 @@ on:
         description: 'yml'
         required: false
 
+env:
+  PACKAGE_SLUG: advanced-custom-fields-pro
+
 jobs:
   # Set the job key. The key is displayed as the job name
   # when a job name is not provided
@@ -48,31 +51,34 @@ jobs:
       - name: 'Get version'
         id: new_version
         run: echo "::set-output name=new_version::$(php .github/workflows/check.php)"
-
-      # Compare versions
-      - name: 'Check if update is needed'
-        run: 'if [ "${{ steps.previous_version.outputs.tag }}" = "${{ steps.new_version.outputs.new_version }}" ]; then exit 1; else exit 0; fi'
         
       - name: 'Git config'
+        if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}
         run: |
           git config user.name "GitHub Actions"
           git config user.email noreply@github.com
 
       - name: 'Clean'
-        run: find . -maxdepth 1 \( -name 'plugin.zip' -o -name 'composer.json' -o -name 'composer.lock' -o -name '.gitignore' -o -name 'README.md' -o -path './.git' -o -path './.github' \) -prune -o -exec rm -rf {} \;
+        if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}
+        run: find . -maxdepth 1 \( -name 'package.zip' -o -name 'composer.json' -o -name 'composer.lock' -o -name '.gitignore' -o -path './.git' -o -path './.github' \) -prune -o -exec rm -rf {} \;
 
       - name: Unzip
+        if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}
         uses: TonyBogdanov/zip@1.0
         with:
-            args: unzip -qq ./plugin.zip -d .
+            args: unzip -qq ./package.zip -d .
       
+      # You may not need this step depending on the contents of the zip
       - name: Move
-        run: sudo mv plugin/* .
+        if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}
+        run: sudo mv ${{ env.PLUGIN_SLUG }}/* .
       
       - name: rm
-        run: rm plugin.zip && rm -rf plugin
+        if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}
+        run: rm package.zip && rm -rf ${{ env.PLUGIN_SLUG }}
         
       - name: Commit
+        if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}
         id: make-commit
         run: |
           git add .
@@ -80,6 +86,7 @@ jobs:
           echo "::set-output name=commit::$(git rev-parse HEAD)"
     
       - name: Push
+        if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}
         run: |
           git push
           git tag ${{ steps.new_version.outputs.new_version }}
