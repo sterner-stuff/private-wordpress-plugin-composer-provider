@@ -2,8 +2,8 @@ name: Updater
 
 # Run this workflow twice daily
 on: 
-  schedule:
-    - cron: '0 */12 * * *'
+  # schedule:
+  #   - cron: '0 */12 * * *'
   workflow_dispatch:
     inputs:
       name:
@@ -71,11 +71,11 @@ jobs:
       # You may not need this step depending on the contents of the zip
       - name: Move
         if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}
-        run: sudo mv ${{ env.PLUGIN_SLUG }}/* .
+        run: sudo mv ${{ env.PACKAGE_SLUG }}/* .
       
       - name: rm
         if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}
-        run: rm package.zip && rm -rf ${{ env.PLUGIN_SLUG }}
+        run: rm package.zip && rm -rf ${{ env.PACKAGE_SLUG }}
         
       - name: Commit
         if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}

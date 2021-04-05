@@ -31,6 +31,13 @@ This repository is just a starting point. You'll need to configure a few things 
 ### Clone and copy
 You really shouldn't fork this repository unless you plan to commit back imporovements to the starter template. For actual use, you should probably create a fresh repo.
 
+You'll also want to create a first tag so the action has something to compare to:
+
+```
+git tag 0.0.0
+git push --tags
+```
+
 ### Determine the download URL for your plugin
 You can download the latest version of most private plugins from a fixed URL, so long as you provide authentication of some kind. For example, Advanced Custom Fields Pro can be downloaded from:
 
@@ -42,13 +49,27 @@ https://connect.advancedcustomfields.com/index.php?a=download&p=pro&k={{your_acf
 You shouldn't be committing any license keys or API keys to this repository. Instead, save any sensitive information needed to authenticate and download your plugin as [GitHub Secrets](https://docs.github.com/en/actions/reference/encrypted-secrets).
 
 ### Update `.github/update.yml`
-Next, you need to update the GitHub action configuration in `.github/update.yml`. Find the "Fetch" step and update the URL with your plugin's endpoint, substituting in the secret you configured in the previous step for any sensitive information. For example, ACF Pro might end up looking like this:
+Next, you need to update the GitHub action configuration in `.github/update.yml`.
+
+Find the "Fetch" step and update the URL with your plugin's endpoint, substituting in the secret you configured in the previous step for any sensitive information. For example, ACF Pro might end up looking like this:
 
 ```
 # Fetch latest version
 - name: Fetch
 run: wget 'https://connect.advancedcustomfields.com/index.php?a=download&p=pro&k=${{secrets.ACF_PRO_LICENSE}}' -O plugin.zip
 ```
+
+Depending on the contents of the zip getting pulled down from the plugin's author, some moving around may be required. For example, if you download ACF Pro, the zip contains a directory that contains the plugin files. This is a common pattern, and the plugin files need to be moved up to the root directory.
+
+That particular pattern is enabled by default - simply configure the plugin slug (which should correspond to the nested directory's name) in the `env` section of the action:
+
+```
+env:
+  PACKAGE_SLUG: advanced-custom-fields-pro
+```
+
+If this behavior _isn't_ desirable, comment out the "Move" step entirely. Tweak according to your own needs.
+
 ### Update `composer.json`
 Finally, update the included `composer.json` with an appropriate package name and, optionally, author credits. For example:
 
@@ -78,6 +99,9 @@ The only parts you shouldn't change are the package type and the `tutv95/wp-pack
 
 ### Push and test
 Commit and push to GitHub. You should now see a new "Actions" tab across the top of your repository. Click into it, find the "Updater" workflow, and run it (main branch, no `yml` required). The action should pull and tag the latest available version of the plugin.
+
+### Schedule
+Confident that everything is in working order, you should now uncomment the schedule configuration of the `on` section in `update.yml`. By default, the package will auto-check for updates twice a day. Configure to your liking.
 
 ### Require
 You can now require this library in your WordPress install. In your WordPress's `composer.json`, add the GitHub repo as [a VCS repository](https://getcomposer.org/doc/05-repositories.md#vcs):
