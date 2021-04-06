@@ -30,7 +30,7 @@ jobs:
 
       # Fetch latest version
       - name: Fetch
-        run: wget 'https://privateplugin.example&k=${{secrets.PLUGIN_KEY}}' -O plugin.zip
+        run: wget 'https://privateplugin.example&k=${{secrets.PLUGIN_KEY}}' -O package.zip
 
       # PHP
       - name: 'Setup PHP'
