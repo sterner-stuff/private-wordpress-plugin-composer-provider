@@ -139,6 +139,9 @@ The WordPress license, and how it impacts paid plugins, will probably always be 
 ## Problems?
 You may need to make tweaks to the updater workflow unique to the plugin you're trying to make work. Feel free to open a PR for more general improvements.
 
+## Known Incompatibilities
+- **Easy Digital Downloads**: EDD seem to use some kind of nonce system to create download links, so there is no fixed download link for items sold via EDD to my knowledge. Happy to be proven wrong. Impacts FacetWP, for example.
+
 ## FAQ
 ### [Plugin X] authenticates a different way
 See the `wget` documentation for a variety of options that should allow you to authenticate in whatever way required. Tinker with the "Fetch" step in `.github/update.yml` appropriately.
