@@ -1,0 +1,93 @@
+name: Updater
+
+# Run this workflow twice daily
+on: 
+  # schedule:
+  #   - cron: '0 */12 * * *'
+  workflow_dispatch:
+    inputs:
+      name:
+        description: 'yml'
+        required: false
+
+env:
+  PACKAGE_SLUG: advanced-custom-fields-pro
+
+jobs:
+  # Set the job key. The key is displayed as the job name
+  # when a job name is not provided
+  update:
+    # Name the Job
+    name: Fetch and check versions
+    # Set the type of machine to run on
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      # Fetch latest version
+      - name: Fetch
+        run: wget 'https://connect.advancedcustomfields.com/index.php?a=download&p=pro&k=${{secrets.ACF_PRO_LICENSE}}' -O package.zip
+
+      # PHP
+      - name: 'Setup PHP'
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.0'
+        
+      # Install dependencies
+      - name: Composer
+        run: 'composer install'
+
+      # Get current tag
+      - name: 'Get Previous tag'
+        id: previous_version
+        uses: "WyriHaximus/github-action-get-previous-tag@v1"
+        
+      # Get new version
+      - name: 'Get version'
+        id: new_version
+        run: echo "::set-output name=new_version::$(php .github/workflows/check.php)"
+        
+      - name: 'Git config'
+        if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email noreply@github.com
+
+      - name: 'Clean'
+        if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}
+        run: find . -maxdepth 1 \( -name 'package.zip' -o -name 'composer.json' -o -name 'composer.lock' -o -name '.gitignore' -o -path './.git' -o -path './.github' \) -prune -o -exec rm -rf {} \;
+
+      - name: Unzip
+        if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}
+        uses: TonyBogdanov/zip@1.0
+        with:
+            args: unzip -qq ./package.zip -d .
+      
+      # You may not need this step depending on the contents of the zip
+      - name: Move
+        if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}
+        run: sudo mv ${{ env.PACKAGE_SLUG }}/* .
+      
+      - name: rm
+        if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}
+        run: rm package.zip && rm -rf ${{ env.PACKAGE_SLUG }}
+        
+      - name: Commit
+        if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}
+        id: make-commit
+        run: |
+          git add .
+          git commit -m '${{ steps.new_version.outputs.new_version }}'
+          echo "::set-output name=commit::$(git rev-parse HEAD)"
+    
+      - name: Push
+        if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}
+        run: |
+          git push
+          git tag ${{ steps.new_version.outputs.new_version }}
+          git push --tags
