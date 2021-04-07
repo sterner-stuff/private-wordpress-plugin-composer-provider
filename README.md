@@ -28,8 +28,8 @@ The included `composer.json` then provides other necessary information to turn t
 ## Getting Started
 This repository is just a starting point. You'll need to configure a few things to get your plugin working. This makes the repository very flexible.
 
-### Clone and copy
-You really shouldn't fork this repository unless you plan to commit back imporovements to the starter template. For actual use, you should probably create a fresh repo.
+### Start from this template
+Get started with the "Use This Template" button on this repository.
 
 You'll also want to create a first tag so the action has something to compare to:
 
