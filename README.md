@@ -48,8 +48,8 @@ https://connect.advancedcustomfields.com/index.php?a=download&p=pro&k={{your_acf
 ### Set up license keys as GitHub secrets
 You shouldn't be committing any license keys or API keys to this repository. Instead, save any sensitive information needed to authenticate and download your plugin as [GitHub Secrets](https://docs.github.com/en/actions/reference/encrypted-secrets).
 
-### Update `.github/update.yml`
-Next, you need to update the GitHub action configuration in `.github/update.yml`.
+### Update `.github/workflows/update.yml`
+Next, you need to update the GitHub action configuration in `.github/workflows/update.yml`.
 
 Find the "Fetch" step and update the URL with your plugin's endpoint, substituting in the secret you configured in the previous step for any sensitive information. For example, ACF Pro might end up looking like this:
 
@@ -144,7 +144,7 @@ You may need to make tweaks to the updater workflow unique to the plugin you're 
 
 ## FAQ
 ### [Plugin X] authenticates a different way
-See the `wget` documentation for a variety of options that should allow you to authenticate in whatever way required. Tinker with the "Fetch" step in `.github/update.yml` appropriately.
+See the `wget` documentation for a variety of options that should allow you to authenticate in whatever way required. Tinker with the "Fetch" step in `.github/workflows/update.yml` appropriately.
 ### Can I use this for a theme?
 Totally, but you'll want to update `composer.json` to be use the package type `wordpress-theme`. The existing metadata parser should support WordPress themes.
 ### The zip contents from my plugin download are unexpected (deeply nested, zip within a zip, etc)
