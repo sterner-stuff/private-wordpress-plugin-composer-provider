@@ -56,7 +56,7 @@ Find the "Fetch" step and update the URL with your plugin's endpoint, substituti
 ```
 # Fetch latest version
 - name: Fetch
-run: wget 'https://connect.advancedcustomfields.com/index.php?a=download&p=pro&k=${{secrets.ACF_PRO_LICENSE}}' -O plugin.zip
+run: wget 'https://connect.advancedcustomfields.com/index.php?a=download&p=pro&k=${{secrets.ACF_PRO_LICENSE}}' -O package.zip
 ```
 
 Depending on the contents of the zip getting pulled down from the plugin's author, some moving around may be required. For example, if you download ACF Pro, the zip contains a directory that contains the plugin files. This is a common pattern, and the plugin files need to be moved up to the root directory.
