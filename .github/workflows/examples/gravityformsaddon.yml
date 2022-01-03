@@ -39,9 +39,7 @@ jobs:
       #- name: Show Response
       #  run: echo ${{ steps.GravityFormsAPIResponse.outputs.response }}
 
-      # Fetch latest version of GravityForms to download
-      # Note: to access GravityForms add-ons/extensions change `offerings.gravityforms.url_latest`
-      # to e.g. `offerings.gravityformsmailchimp.url_latest`
+      # Fetch latest version of Gravity Forms add-on to download
       - name: Fetch
         run: wget '${{fromJson(steps.GravityFormsAPIResponse.outputs.response).offerings.gravityformsrecaptcha.url_latest}}' -O package.zip
       
