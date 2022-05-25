@@ -5,10 +5,6 @@ on:
   # schedule:
   #   - cron: '0 */12 * * *'
   workflow_dispatch:
-    inputs:
-      name:
-        description: 'yml'
-        required: false
 
 env:
   PACKAGE_SLUG: gravityforms
@@ -84,7 +80,7 @@ jobs:
       # You may not need this step depending on the contents of the zip
       - name: Move
         if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}
-        run: sudo mv ${{ env.PACKAGE_SLUG }}/* .
+        run: shopt -s dotglob && sudo mv ${{ env.PACKAGE_SLUG }}/* .
       
       - name: rm
         if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}
