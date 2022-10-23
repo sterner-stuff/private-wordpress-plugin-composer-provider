@@ -37,7 +37,7 @@ jobs:
 
       # Fetch latest version of Gravity Forms add-on to download
       - name: Fetch
-        run: wget '${{fromJson(steps.GravityFormsAPIResponse.outputs.response).offerings.gravityformsrecaptcha.url_latest}}' -O package.zip
+        run: wget '${{fromJson(steps.GravityFormsAPIResponse.outputs.response).offerings.[env.PACKAGE_SLUG].url_latest}}' -O package.zip
       
       # PHP
       - name: 'Setup PHP'

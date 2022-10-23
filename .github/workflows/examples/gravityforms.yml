@@ -39,7 +39,7 @@ jobs:
       # Note: to access GravityForms add-ons/extensions change `offerings.gravityforms.url_latest`
       # to e.g. `offerings.gravityformsmailchimp.url_latest`
       - name: Fetch
-        run: wget '${{fromJson(steps.GravityFormsAPIResponse.outputs.response).offerings.gravityforms.url_latest}}' -O package.zip
+        run: wget '${{fromJson(steps.GravityFormsAPIResponse.outputs.response).offerings[env.PACKAGE_SLUG].url_latest}}' -O package.zip
       
       # PHP
       - name: 'Setup PHP'
