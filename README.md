@@ -31,13 +31,6 @@ This repository is just a starting point. You'll need to configure a few things 
 ### Start from this template
 Get started with the "Use This Template" button on this repository.
 
-You'll also want to create a first tag so the action has something to compare to:
-
-```
-git tag 0.0.0
-git push --tags
-```
-
 ### Determine the download URL for your plugin
 You can download the latest version of most private plugins from a fixed URL, so long as you provide authentication of some kind. For example, Advanced Custom Fields Pro can be downloaded from:
 
