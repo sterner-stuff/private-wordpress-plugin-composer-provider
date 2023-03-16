@@ -7,9 +7,16 @@ on:
   workflow_dispatch:
 
 env:
-  PACKAGE_SLUG: searchwp
-  VENDOR_URL: https://searchwp.com
-  ITEM_ID: 216029
+  # The plugin slug
+  PACKAGE_SLUG: example
+
+  # The URL of the vendor using EDD (example: https://searchwp.com)
+  VENDOR_URL: https://example.com
+
+  # The item ID of the download, this is different for every plugin and vendor, for example SearchWP's item ID is `216029`
+  ITEM_ID: 1
+
+  # A valid URL that your purchase is registered to in EDD
   ACTIVATION_URL: ${{github.server_url}}/${{github.repository}}
 
 jobs:
