@@ -24,12 +24,12 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Use EDD API to find download link for latest
+      # Use EDD API to find download link for latest version, using the EDD item ID (different for every plugin)
       - name: Get download link from EDD
         id: EDDResponse
         uses: fjogeleit/http-request-action@master
         with:
-          url: 'https://searchwp.com/?edd_action=get_version&item_id=SearchWP&license=${{secrets.SEARCHWP_KEY}}&url=${{github.server_url}}/${{github.repository}}'
+          url: 'https://searchwp.com/?edd_action=get_version&item_id=216029&license=${{secrets.SEARCHWP_KEY}}&url=${{github.server_url}}/${{github.repository}}'
 
       # Fetch latest version of SearchWP to download
       - name: Fetch
