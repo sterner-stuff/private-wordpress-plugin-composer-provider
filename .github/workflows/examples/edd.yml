@@ -39,7 +39,7 @@ jobs:
         id: EDDResponse
         uses: fjogeleit/http-request-action@master
         with:
-          url: '${{ env.VENDOR_URL }}/?edd_action=get_version&item_id=${{ env.PACKAGE_SLUG }}&license=${{secrets.SEARCHWP_KEY}}&url=${{ env.ACTIVATION_URL }}'
+          url: '${{ env.VENDOR_URL }}/?edd_action=get_version&item_id=${{ env.PACKAGE_SLUG }}&license=${{secrets.LICENSE_KEY}}&url=${{ env.ACTIVATION_URL }}'
 
       # Fetch latest version of SearchWP to download
       - name: Fetch
