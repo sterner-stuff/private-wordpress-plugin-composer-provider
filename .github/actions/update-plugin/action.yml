@@ -37,7 +37,7 @@ runs:
     - name: 'Get version'
       id: new_version
       shell: bash
-      run: echo "new_version=$(php .github/workflows/check.php)" >> $GITHUB_OUTPUT
+      run: echo "new_version=$(php .github/actions/update-plugin/check.php)" >> $GITHUB_OUTPUT
 
     # Configure git user
     - name: 'Git config'
