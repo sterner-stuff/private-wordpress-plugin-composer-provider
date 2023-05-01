@@ -25,17 +25,20 @@ This repository includes a GitHub action that, on a regular schedule, will:
 
 The included `composer.json` then provides other necessary information to turn this repository into [a valid Composer VCS repository](https://getcomposer.org/doc/05-repositories.md#vcs).
 
-## Getting Started
+## Getting started
 This repository is just a starting point. You'll need to configure a few things to get your plugin working. This makes the repository very flexible.
 
 ### Start from this template
 Get started with the "Use This Template" button on this repository.
 
+### Consider using an example
+Many popular plugins have configurations ready to go in the `.github/workflows/examples` directory. Copying a workflow out of here into `update.yml` may be sufficient for your needs. Consult each file for important plugin-specific information.
+
 ### Determine the download URL for your plugin
-You can download the latest version of most private plugins from a fixed URL, so long as you provide authentication of some kind. For example, Advanced Custom Fields Pro can be downloaded from:
+You can download the latest version of most private plugins from a fixed URL, so long as you provide authentication of some kind. For example, Events Calendar Pro can be downloaded from:
 
 ```
-https://connect.advancedcustomfields.com/index.php?a=download&p=pro&k={{your_acf_license}}
+https://pue.tri.be/api/plugins/v2/download?plugin=events-calendar-pro&key=${{your_tec_key}}
 ```
 
 ### Set up license keys as GitHub secrets
@@ -44,21 +47,21 @@ You shouldn't be committing any license keys or API keys to this repository. Ins
 ### Update `.github/workflows/update.yml`
 Next, you need to update the GitHub action configuration in `.github/workflows/update.yml`.
 
-Find the "Fetch" step and update the URL with your plugin's endpoint, substituting in the secret you configured in the previous step for any sensitive information. For example, ACF Pro might end up looking like this:
+Find the "Fetch" step and update the URL with your plugin's endpoint, substituting in the secret you configured in the previous step for any sensitive information. For example, TEC Pro might end up looking like this:
 
 ```
 # Fetch latest version
 - name: Fetch
-run: wget 'https://connect.advancedcustomfields.com/index.php?a=download&p=pro&k=${{secrets.ACF_PRO_LICENSE}}' -O package.zip
+run: wget 'https://pue.tri.be/api/plugins/v2/download?plugin=events-calendar-pro&key=${{secrets.TEC_KEY}}' -O package.zip
 ```
 
-Depending on the contents of the zip getting pulled down from the plugin's author, some moving around may be required. For example, if you download ACF Pro, the zip contains a directory that contains the plugin files. This is a common pattern, and the plugin files need to be moved up to the root directory.
+Depending on the contents of the zip getting pulled down from the plugin's author, some moving around may be required. For example, if you download TEC Pro, the zip contains a directory that contains the plugin files. This is a common pattern, and the plugin files need to be moved up to the root directory.
 
 That particular pattern is enabled by default - simply configure the plugin slug (which should correspond to the nested directory's name) in the `env` section of the action:
 
 ```
 env:
-  PACKAGE_SLUG: advanced-custom-fields-pro
+  PACKAGE_SLUG: events-calendar-pro
 ```
 
 If this behavior _isn't_ desirable, comment out the "Move" step entirely. Tweak according to your own needs.
@@ -68,13 +71,9 @@ Finally, update the included `composer.json` with an appropriate package name an
 
 ```
 {
-    "name": "elliotcondon/advanced-custom-fields-pro",
+    "name": "the-events-calendar/events-calendar-pro",
     "type": "wordpress-plugin",
     "authors": [
-        {
-            "name": "Elliot Condon",
-            "email": "e@elliotcondon.com"
-        },
         {
             "name": "Ethan Clevenger",
             "email": "ethan@sternerstuff.dev"
@@ -97,37 +96,21 @@ Commit and push to GitHub. You should now see a new "Actions" tab across the top
 Confident that everything is in working order, you should now uncomment the schedule configuration of the `on` section in `update.yml`. By default, the package will auto-check for updates twice a day. Configure to your liking.
 
 ### Require
-You can now require this library in your WordPress install. In your WordPress's `composer.json`, add the GitHub repo as [a VCS repository](https://getcomposer.org/doc/05-repositories.md#vcs):
+You can now require this library in your WordPress install. Add the GitHub repo to your `composer.json` file as [a VCS repository](https://getcomposer.org/doc/05-repositories.md#vcs), and require the library according to how you named the package. Given the current example:
 
 ```
-{
-	"name": "roots/bedrock",
-	"type": "project",
-	...
-	"repositories": [
-		{
-			"type": "composer",
-			"url": "https://wpackagist.org"
-		},
-		{
-			"type": "vcs",
-			"url": "git@github.com:sterner-stuff/advanced-custom-fields-pro.git"
-		}
-	],
-	"require": {
-		...
-	}
-}
-
-```
-And finally, run `composer require {{ package-name }}` according to what you configured. Given the previous example:
-
-```
-composer require elliotcondon/advanced-custom-fields-pro
+composer config repositories.events-calendar-pro vcs git@github.com:sterner-stuff/events-calendar-pro.git
+composer require the-events-calendar/events-calendar-pro
 ```
 
 ## Etiquette
-The WordPress license, and how it impacts paid plugins, will probably always be a point of contention. Ignoring that, we believe that plugin authors that choose to charge for their work should get paid, considering the cost savings gained by using their work. Therefore, we strongly discourage using this workflow to make self-updating public mirrors of private WordPress plugins and themes. Please create a private repository for use in-line with the author's terms of use.
+The WordPress license, and how it impacts paid plugins, will probably always be a point of contention. Ignoring that, we believe that plugin authors that choose to charge for their work should get paid, considering the cost savings gained by using their work. Therefore, we strongly discourage using this workflow to:
+
+- Make self-updating public mirrors of private WordPress plugins and themes
+- Use a single plugin license across multiple sites when your license plan does not authorize doing so
+- Otherwise violate the terms of use of your purchase
+
+Please create a private repository for use according to the author's terms of use.
 
 ## Problems?
 You may need to make tweaks to the updater workflow unique to the plugin you're trying to make work. Feel free to open a PR for more general improvements.
@@ -137,9 +120,9 @@ You may need to make tweaks to the updater workflow unique to the plugin you're 
 
 ## FAQ
 ### [Plugin X] authenticates a different way
-See the `wget` documentation for a variety of options that should allow you to authenticate in whatever way required. Tinker with the "Fetch" step in `.github/workflows/update.yml` appropriately.
+See the `wget` documentation for a variety of options that should allow you to authenticate in whatever way required. Tinker with the "Fetch" step in `.github/workflows/update.yml` appropriately, and feel free to submit a PR with a new example workflow if you want to give back.
 ### Can I use this for a theme?
-Totally, but you'll want to update `composer.json` to be use the package type `wordpress-theme`. The existing metadata parser should support WordPress themes.
+Yes, but you'll want to update `composer.json` to be use the package type `wordpress-theme`. The existing metadata parser should support WordPress themes.
 ### The zip contents from my plugin download are unexpected (deeply nested, zip within a zip, etc)
 This will require your own tinkering with the GitHub action to move directories and files around appropriately.
 
