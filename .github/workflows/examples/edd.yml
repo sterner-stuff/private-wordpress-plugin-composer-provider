@@ -7,14 +7,20 @@ on:
   workflow_dispatch:
 
 env:
-  # The plugin slug (example: searchwp)
-  PACKAGE_SLUG: example
+
+  # The Easy Digital Downloads Item ID (example: searchwp's item ID is 216029)
+  ITEM_ID: 123456
 
   # The URL of the vendor using EDD (example: https://searchwp.com)
   VENDOR_URL: https://example.com
 
   # A valid URL that your purchase is registered to in EDD
   ACTIVATION_URL: ${{github.server_url}}/${{github.repository}}
+
+  ## SearchWP Example
+  # ITEM_ID: 216029
+  # VENDOR_URL: https://searchwp.com
+  # ACTIVATION_URL: ${{github.server_url}}/${{github.repository}}
 
 jobs:
   update-plugin:
@@ -34,7 +40,7 @@ jobs:
         id: EDDResponse
         uses: fjogeleit/http-request-action@master
         with:
-          url: '${{ env.VENDOR_URL }}/?edd_action=get_version&item_id=${{ env.PACKAGE_SLUG }}&license=${{secrets.LICENSE_KEY}}&url=${{ env.ACTIVATION_URL }}'
+          url: '${{ env.VENDOR_URL }}/?edd_action=get_version&item_id=${{ env.ITEM_ID }}&license=${{secrets.LICENSE_KEY}}&url=${{ env.ACTIVATION_URL }}'
 
       # Fetch latest version of SearchWP to download
       - name: Fetch
