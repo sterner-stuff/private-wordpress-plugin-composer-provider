@@ -1,0 +1,89 @@
+name: 'Update WordPress Plugin'
+description: 'Download and compare versions of a WordPress plugin, commit the latest version'
+
+inputs:
+
+  # The slug of the plugin to update
+  package-slug:
+    description: 'The slug of the plugin to update'
+    required: true
+
+  # Package file name
+  package-file-name:
+    description: 'Package file name'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+
+    # Set up PHP
+    - name: 'Setup PHP'
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.0'
+
+    # Install composer dependencies
+    - name: Composer
+      shell: bash
+      run: 'composer install'
+
+    # Get the current plugin version
+    - name: 'Get Previous tag'
+      id: previous_version
+      uses: "WyriHaximus/github-action-get-previous-tag@v1"
+
+    # Get new plugin version
+    - name: 'Get version'
+      id: new_version
+      shell: bash
+      run: echo "new_version=$(php .github/workflows/check.php)" >> $GITHUB_OUTPUT
+
+    # Configure git user
+    - name: 'Git config'
+      if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}
+      shell: bash
+      run: |
+        git config user.name "GitHub Actions"
+        git config user.email noreply@github.com
+
+    # Compare versions
+    - name: 'Clean'
+      if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}
+      shell: bash
+      run: find . -maxdepth 1 \( -name 'package.zip' -o -name 'composer.json' -o -name 'composer.lock' -o -name '.gitignore' -o -path './.git' -o -path './.github' \) -prune -o -exec rm -rf {} \;
+
+    # Unzip the package
+    - name: Unzip
+      if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}
+      uses: TonyBogdanov/zip@1.0
+      with:
+          args: unzip -qq ./package.zip -d .
+
+    # You may not need this step depending on the contents of the zip
+    - name: Move
+      if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}
+      shell: bash
+      run: shopt -s dotglob && sudo mv ${{ env.PACKAGE_SLUG }}/* .
+
+    - name: rm
+      if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}
+      shell: bash
+      run: rm package.zip && rm -rf ${{ env.PACKAGE_SLUG }}
+
+    - name: Commit
+      if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}
+      id: make-commit
+      shell: bash
+      run: |
+        git add .
+        git commit -m '${{ steps.new_version.outputs.new_version }}'
+        echo "commit=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+
+    - name: Push
+      if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}
+      shell: bash
+      run: |
+        git push
+        git tag ${{ steps.new_version.outputs.new_version }}
+        git push --tags
