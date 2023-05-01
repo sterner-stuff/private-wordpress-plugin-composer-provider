@@ -1,7 +1,7 @@
-name: Updater
+name: Gravity Forms Addon Updater
 
 # Run this workflow twice daily
-on: 
+on:
   # schedule:
   #   - cron: '0 */12 * * *'
   workflow_dispatch:
@@ -10,12 +10,8 @@ env:
   PACKAGE_SLUG: gravityformsrecaptcha
 
 jobs:
-  # Set the job key. The key is displayed as the job name
-  # when a job name is not provided
   update:
-    # Name the Job
     name: Fetch and check versions
-    # Set the type of machine to run on
     runs-on: ubuntu-latest
 
     steps:
@@ -23,7 +19,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      
+
       # Use GravityForms API to find download link for latest
       - name: Get download link from GravityForms API
         id: GravityFormsAPIResponse
@@ -31,70 +27,13 @@ jobs:
         with:
           url: 'https://www.gravityhelp.com/wp-content/plugins/gravitymanager/version.php?nocache=1&version=2&key=${{secrets.GRAVITYFORMS_KEY}}'
 
-      # uncomment to debug or see other "offerings" your license can download
-      #- name: Show Response
-      #  run: echo ${{ steps.GravityFormsAPIResponse.outputs.response }}
-
       # Fetch latest version of Gravity Forms add-on to download
       - name: Fetch
         run: wget '${{fromJson(steps.GravityFormsAPIResponse.outputs.response).offerings[env.PACKAGE_SLUG].url_latest}}' -O package.zip
-      
-      # PHP
-      - name: 'Setup PHP'
-        uses: shivammathur/setup-php@v2
+
+      # Get the latest plugin and compare versions, commit if necessary
+      - uses: ./.github/actions/update-plugin
+        name: Update WordPress Plugin
         with:
-          php-version: '8.0'
-      
-      # Install dependencies
-      - name: Composer
-        run: 'composer install'
-
-      # Get current tag
-      - name: 'Get Previous tag'
-        id: previous_version
-        uses: "WyriHaximus/github-action-get-previous-tag@v1"
-        
-      # Get new version
-      - name: 'Get version'
-        id: new_version
-        run: echo "new_version=$(php .github/workflows/check.php)" >> $GITHUB_OUTPUT
-        
-      - name: 'Git config'
-        if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}
-        run: |
-          git config user.name "GitHub Actions"
-          git config user.email noreply@github.com
-
-      - name: 'Clean'
-        if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}
-        run: find . -maxdepth 1 \( -name 'package.zip' -o -name 'composer.json' -o -name 'composer.lock' -o -name '.gitignore' -o -path './.git' -o -path './.github' \) -prune -o -exec rm -rf {} \;
-
-      - name: Unzip
-        if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}
-        uses: TonyBogdanov/zip@1.0
-        with:
-            args: unzip -qq ./package.zip -d .
-      
-      # You may not need this step depending on the contents of the zip
-      - name: Move
-        if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}
-        run: shopt -s dotglob && sudo mv ${{ env.PACKAGE_SLUG }}/* .
-      
-      - name: rm
-        if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}
-        run: rm package.zip && rm -rf ${{ env.PACKAGE_SLUG }}
-        
-      - name: Commit
-        if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}
-        id: make-commit
-        run: |
-          git add .
-          git commit -m '${{ steps.new_version.outputs.new_version }}'
-          echo "commit=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
-    
-      - name: Push
-        if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}
-        run: |
-          git push
-          git tag ${{ steps.new_version.outputs.new_version }}
-          git push --tags
+          package-slug: ${{ env.PACKAGE_SLUG }}
+          package-file-name: package.zip
