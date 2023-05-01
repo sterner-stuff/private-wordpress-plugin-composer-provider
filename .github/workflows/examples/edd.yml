@@ -7,7 +7,6 @@ on:
   workflow_dispatch:
 
 env:
-<<<<<<< Updated upstream:.github/workflows/examples/edd.yml
   # The plugin slug
   PACKAGE_SLUG: example
 
@@ -19,9 +18,6 @@ env:
 
   # A valid URL that your purchase is registered to in EDD
   ACTIVATION_URL: ${{github.server_url}}/${{github.repository}}
-=======
-  PACKAGE_SLUG: events-calendar-pro
->>>>>>> Stashed changes:.github/workflows/examples/facetwp.yml
 
 jobs:
   update-plugin:
@@ -36,30 +32,84 @@ jobs:
         with:
           fetch-depth: 0
 
-<<<<<<< Updated upstream:.github/workflows/examples/edd.yml
       # Use EDD API to find download link for latest version, using the EDD item ID (different for every plugin)
       - name: Get download link from EDD
         id: EDDResponse
-=======
-     # Use FacetWP API to find download link for latest
-      - name: Get download link from FacetWP API
-        id: FacetWPAPIResponse
->>>>>>> Stashed changes:.github/workflows/examples/facetwp.yml
         uses: fjogeleit/http-request-action@master
         with:
           url: '${{ env.VENDOR_URL }}/?edd_action=get_version&item_id=${{ env.PACKAGE_SLUG }}&license=${{secrets.LICENSE_KEY}}&url=${{ env.ACTIVATION_URL }}'
 
-<<<<<<< Updated upstream:.github/workflows/examples/edd.yml
       # Fetch latest version of SearchWP to download
-=======
-      # Fetch latest version
->>>>>>> Stashed changes:.github/workflows/examples/facetwp.yml
       - name: Fetch
         run: wget '${{fromJson(steps.EDDResponse.outputs.response).package}}' -O package.zip
 
-      # Get the latest plugin and compare versions, commit if necessary
-      - uses: ./.github/actions/update-plugin
-        name: Update WordPress Plugin
+      # Set up PHP
+      - name: 'Setup PHP'
+        uses: shivammathur/setup-php@v2
         with:
-          package-slug: ${{ env.PACKAGE_SLUG }}
-          package-file-name: package.zip
+          php-version: '8.0'
+
+      # Install composer dependencies
+      - name: Composer
+        shell: bash
+        run: 'composer install'
+
+      # Get the current plugin version
+      - name: 'Get Previous tag'
+        id: previous_version
+        uses: "WyriHaximus/github-action-get-previous-tag@v1"
+
+      # Get new plugin version
+      - name: 'Get version'
+        id: new_version
+        shell: bash
+        run: echo "new_version=$(php .github/workflows/check.php)" >> $GITHUB_OUTPUT
+
+      # Configure git user
+      - name: 'Git config'
+        if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}
+        shell: bash
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email noreply@github.com
+
+      # Compare versions
+      - name: 'Clean'
+        if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}
+        shell: bash
+        run: find . -maxdepth 1 \( -name 'package.zip' -o -name 'composer.json' -o -name 'composer.lock' -o -name '.gitignore' -o -path './.git' -o -path './.github' \) -prune -o -exec rm -rf {} \;
+
+      # Unzip the package
+      - name: Unzip
+        if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}
+        uses: TonyBogdanov/zip@1.0
+        with:
+            args: unzip -qq ./package.zip -d .
+
+      # You may not need this step depending on the contents of the zip
+      - name: Move
+        if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}
+        shell: bash
+        run: shopt -s dotglob && sudo mv ${{ env.PACKAGE_SLUG }}/* .
+
+      - name: rm
+        if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}
+        shell: bash
+        run: rm package.zip && rm -rf ${{ env.PACKAGE_SLUG }}
+
+      - name: Commit
+        if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}
+        id: make-commit
+        shell: bash
+        run: |
+          git add .
+          git commit -m '${{ steps.new_version.outputs.new_version }}'
+          echo "commit=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Push
+        if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}
+        shell: bash
+        run: |
+          git push
+          git tag ${{ steps.new_version.outputs.new_version }}
+          git push --tags
