@@ -1,3 +1,4 @@
+# This example is not recommended for use and is not maintained. Gravity Forms now offers Composer installation.
 name: Updater
 
 # Run this workflow twice daily

@@ -20,7 +20,7 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -32,7 +32,7 @@ jobs:
       - name: 'Setup PHP'
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.0'
+          php-version: '8.4'
         
       # Install dependencies
       - name: Composer
@@ -60,9 +60,7 @@ jobs:
 
       - name: Unzip
         if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}
-        uses: TonyBogdanov/zip@1.0
-        with:
-            args: unzip -qq ./package.zip -d .
+        run: unzip -qq ./package.zip -d .
       
       # You may not need this step depending on the contents of the zip
       - name: Move

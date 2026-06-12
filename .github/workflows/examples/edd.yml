@@ -31,7 +31,7 @@ jobs:
 
       # Checkout repo
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -39,8 +39,7 @@ jobs:
       - name: Get download link from EDD
         id: EDDResponse
         uses: fjogeleit/http-request-action@master
-        with:
-          url: '${{ env.VENDOR_URL }}/?edd_action=get_version&item_id=${{ env.ITEM_ID }}&license=${{secrets.LICENSE_KEY}}&url=${{ env.ACTIVATION_URL }}'
+        run: wget '${{ env.VENDOR_URL }}/?edd_action=get_version&item_id=${{ env.ITEM_ID }}&license=${{secrets.LICENSE_KEY}}&url=${{ env.ACTIVATION_URL }}'
 
       # Fetch latest version of SearchWP to download
       - name: Fetch
@@ -50,11 +49,10 @@ jobs:
       - name: 'Setup PHP'
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.0'
+          php-version: '8.4'
 
       # Install composer dependencies
       - name: Composer
-        shell: bash
         run: 'composer install'
 
       # Get the current plugin version
@@ -65,13 +63,11 @@ jobs:
       # Get new plugin version
       - name: 'Get version'
         id: new_version
-        shell: bash
         run: echo "new_version=$(php .github/workflows/check.php)" >> $GITHUB_OUTPUT
 
       # Configure git user
       - name: 'Git config'
         if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}
-        shell: bash
         run: |
           git config user.name "GitHub Actions"
           git config user.email noreply@github.com
@@ -79,31 +75,25 @@ jobs:
       # Compare versions
       - name: 'Clean'
         if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}
-        shell: bash
         run: find . -maxdepth 1 \( -name 'package.zip' -o -name 'composer.json' -o -name 'composer.lock' -o -name '.gitignore' -o -path './.git' -o -path './.github' \) -prune -o -exec rm -rf {} \;
 
       # Unzip the package
       - name: Unzip
         if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}
-        uses: TonyBogdanov/zip@1.0
-        with:
-            args: unzip -qq ./package.zip -d .
+        run: unzip -qq ./package.zip -d .
 
       # You may not need this step depending on the contents of the zip
       - name: Move
         if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}
-        shell: bash
         run: shopt -s dotglob && sudo mv ${{ env.PACKAGE_SLUG }}/* .
 
       - name: rm
         if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}
-        shell: bash
         run: rm package.zip && rm -rf ${{ env.PACKAGE_SLUG }}
 
       - name: Commit
         if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}
         id: make-commit
-        shell: bash
         run: |
           git add .
           git commit -m '${{ steps.new_version.outputs.new_version }}'
@@ -111,7 +101,6 @@ jobs:
 
       - name: Push
         if: ${{ steps.previous_version.outputs.tag != steps.new_version.outputs.new_version }}
-        shell: bash
         run: |
           git push
           git tag ${{ steps.new_version.outputs.new_version }}
